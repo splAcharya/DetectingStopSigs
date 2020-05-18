@@ -29,6 +29,23 @@
     </Compile>
     <Compile Include="StopSings.py" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="inputImages\" />
+    <Folder Include="outputImages\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="inputImages\image_1.bmp" />
+    <Content Include="inputImages\image_10.bmp" />
+    <Content Include="inputImages\image_11.bmp" />
+    <Content Include="inputImages\image_2.bmp" />
+    <Content Include="inputImages\image_3.bmp" />
+    <Content Include="inputImages\image_4.bmp" />
+    <Content Include="inputImages\image_5.bmp" />
+    <Content Include="inputImages\image_6.bmp" />
+    <Content Include="inputImages\image_7.bmp" />
+    <Content Include="inputImages\image_8.bmp" />
+    <Content Include="inputImages\image_9.bmp" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
        Visual Studio and specify your pre- and post-build commands in

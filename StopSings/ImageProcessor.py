@@ -4,7 +4,7 @@
 import numpy
 
 
-def applyHistogramEqualization(imageArray, imageHeight, imageWidth):
+def applyHistogramEqualization(imageArray):
 	""" This function perfrom histogram eqalization on a 2D grey scale image array
 
 		Instead of manupulating contrast and brightness of an image manually, Histogram equalization
@@ -16,17 +16,14 @@ def applyHistogramEqualization(imageArray, imageHeight, imageWidth):
 			imageArray:
 				The 2D greyscale image array
 
-			imageHeight:
-				The height of the 2D image array
-
-			imageWidth:
-				The wdith of the 2D image array
-
 		Returns:
 			histogram euqalized 2D image array, the height and width of return array is the same as input imageArray
 	"""
 
 	print("Startting Histogram Equalization")
+
+
+	imageHeight, imageWidth = imageArray.shape #get height and widhth of 2D image array
 
 	#build histogram
 	histogram = numpy.zeros([256],int) #declare a histogram container of size 256 since, a pixel's intensity in a greyscale image can go from 0-255
@@ -64,15 +61,55 @@ def applyHistogramEqualization(imageArray, imageHeight, imageWidth):
 
 
 
-def applyGaussianBlur(imageArray, imageHeight, imageWidth):
+def convolve(imageArray,kernel):
+	""" This function perfrom convolution between image array and given kernel.
+
+		Zeros padding is done around the image array based on the dimenstion of kernel
+		after that convolution is perfromed.
+
+		Args:
+			imageArray: the 2D greyscale image array
+
+			kernel: the kernel/filter/mask to apply to the 2D image array
+
+		Returns:
+			convolved imageArray, the hieght and width of the convolved array is the same as
+			the input imageArray
+	"""
+
+	imageHeight, imageWidth = imageArray.shape
+	kernelHeight, kernelWidth = kernel.shape
+
+	paddedImageArray = numpy.zeros([imageHeight+((kernelHeight-1)*2), imageWidth+((kernelWidth-1)*2)],float) #pad 4 zeroes in all direction since, gaussian kernel is 5x5
+	paddedImageArray[(kernelHeight-1):imageHeight+(kernelHeight-1),(kernelWidth-1):imageWidth+(kernelHeight-1)] = numpy.array(imageArray,float).copy() #insert image array in the zero array to create zero padded array
+	convolvedImageArray = numpy.zeros(paddedImageArray.shape,float)
+
+	#start convolution
+	for i in range(4,paddedImageArray.shape[0]-(kernelHeight-1)):
+		for j in range(4,paddedImageArray.shape[1]-(kernelWidth-1)):
+			outerSum = 0
+			for m in range(0,kernel.shape[0]):
+					innerSum = 0
+					for n in range(0,kernel.shape[1]):
+						innerSum += paddedImageArray[i-m,j-n] * kernel[m,n] 
+					outerSum += innerSum
+			convolvedImageArray[i,j] = outerSum
+		
+	#remove zero padding
+	convolvedImageArray = convolvedImageArray[4:imageHeight+4, 4:imageWidth+4].copy() #remove zero padding
+
+	#return convolved array
+	return convolvedImageArray
+
+
+
+
+
+def applyGaussianBlur(imageArray):
 	""" This function smooths(blurrs) an image by apply guassian blur.
 
 		Args:
 			imageArray: the 2D image array of an greyscale image
-			
-			imageHeight: the height of 2D image array
-
-			imageWidth: the width of 2D image array
 
 		Returns:
 			blurred 2D image array whose height and width are the same as the input 2D image Array
@@ -97,45 +134,15 @@ def applyGaussianBlur(imageArray, imageHeight, imageWidth):
 
 	kernel = kernel / 256 #scale kernel
 
-	paddedImageArray = numpy.zeros([imageHeight+4+4, imageWidth+4+4],float) #pad 4 zeroes in all direction since, gaussian kernel is 5x5
-	paddedImageArray[4:imageHeight+4,4:imageWidth+4] = numpy.array(imageArray,float).copy() #insert image array in the zero array to create zero padded array
-	convolvedImageArray = numpy.zeros(paddedImageArray.shape,float)
+	
+	blurredArray = convolve(imageArray,kernel) #apply blurr via convolution
 
-	#start convolution
-	for i in range(4,paddedImageArray.shape[0]-4):
-		for j in range(4,paddedImageArray.shape[1]-4):
-			outerSum = 0
-			for m in range(0,kernel.shape[0]):
-					innerSum = 0
-					for n in range(0,kernel.shape[1]):
-						innerSum += paddedImageArray[i-m,j-n] * kernel[m,n] 
-					outerSum += innerSum
-			convolvedImageArray[i,j] = outerSum
-			if( 255 < convolvedImageArray[i,j] < 257):
-				convolvedImageArray[i,j]=255
-		
-	#remove zero padding
-	imageArray = convolvedImageArray[4:imageHeight+4, 4:imageWidth+4].copy() #remove zero padding
 	print("Completed Applying Gaussian Blur")
-	return imageArray
+
+	return blurredArray #return blurred array
 
 
 
 
-def discreetFourierTransfrom2D(inputArr, imageHeight, imageWidth):
-	""" This function perfrom discreet fourier transfrom on an 2D greyscale image.
 
-		Args:
-			imageArray: the 2D image array of grey scale image
 
-			imageHeight: the height of 2D image array
-
-			imageWidth: the width of 2D image array
-
-		Returns:
-			the Frequency Domain equivalent of image array
-	"""
-	F = numpy.zeros([imageHeight,imageWidth],float) #define container for array in frequency domain
-	for i in range(0,imageHeight):
-		for j in range(0,imageWidth):
-			print("TODO")

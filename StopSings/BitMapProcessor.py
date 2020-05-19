@@ -85,7 +85,7 @@ def readBitMapImage(ImagePath):
 
 
 
-def writeBitMapImage(header,imageArray,imageHeight,imageWidth,imageName,pathToSave):
+def writeBitMapImage(header,imageArray,imageName,pathToSave):
 	"""This function writes the 2D pixel array into a Bitmap image file
 
 	Args:
@@ -96,14 +96,27 @@ def writeBitMapImage(header,imageArray,imageHeight,imageWidth,imageName,pathToSa
 		None
 	"""
 
+	
 	print("Image Writting Started")
+
 	fileToSave = open((pathToSave + imageName + ".bmp"),"wb+") #create a file towrite
 	fileToSave.write(header) #write header
 		
+
+	imageHeight,imageWidth= imageArray.shape
 	#write data
 	for i in range(0,imageHeight):
 		for j in range(0,imageWidth):
 			temp = int(imageArray[i,j])
+
+			#boundary checkig
+			if(temp < 0):
+				temp = 0
+			elif(temp > 255):
+				temp = 255
+			else:
+				temp = temp
+
 			temp = temp.to_bytes(1,"little")
 			fileToSave.write(temp) #write the piel intensity for R
 			fileToSave.write(temp) #write the piel intensity for G

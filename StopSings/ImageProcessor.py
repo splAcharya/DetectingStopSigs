@@ -37,6 +37,7 @@ def applyHistogramEqualization(imageArray, imageHeight, imageWidth):
 			histogram[intensity] = histogram[intensity] + 1
 
 
+
 	#build cumulative histogram
 	for i in range(1,256):
 		histogram[i] = histogram[i-1] + histogram[i]
@@ -121,7 +122,7 @@ def applyGaussianBlur(imageArray, imageHeight, imageWidth):
 
 
 
-#def discreetFourierTransfrom2D(inputArr, imageHeight, imageWidth):
+def discreetFourierTransfrom2D(inputArr, imageHeight, imageWidth):
 	""" This function perfrom discreet fourier transfrom on an 2D greyscale image.
 
 		Args:
@@ -134,4 +135,7 @@ def applyGaussianBlur(imageArray, imageHeight, imageWidth):
 		Returns:
 			the Frequency Domain equivalent of image array
 	"""
-
+	F = numpy.zeros([imageHeight,imageWidth],float) #define container for array in frequency domain
+	for i in range(0,imageHeight):
+		for j in range(0,imageWidth):
+			print("TODO")

@@ -3,6 +3,71 @@
 
 import numpy
 
+def adjustBrightness(imageArray, adjustmentConstant):
+	""" This function adjusts the brightness of the 2D array by a contant value
+
+	Args:
+		imageArray: the 2D greyscale image array whos brightness is to be adjusted
+		
+		adjustmentConstant: The constant that is to be used for brightness adjustment
+
+	Returns:
+		None
+	"""
+
+	print("Starting Brightness adjustment")
+
+	imageHeight, imageWidth = imageArray.shape
+
+	for i in range(0,imageHeight):
+		for j in range(0,imageWidth):
+			tempC =  imageArray[i,j] + adjustmentConstant
+			if(tempC > 255):
+				imageArray[i,j] = 255
+			else:
+				imageArray[i,j] = tempC
+	print("Brightness adjustment complete")
+
+	return imageArray #return brightness adjusted image array
+	
+
+
+
+def adjustContrastInAllPixels(imageArray, centerConstant, factor):
+	""" This function adjusts the contrast of the 2D array given a correction factor 
+
+	Args:
+		imageArray: the 2D image array whose brightness is to be adjusted
+
+		centerContant: the offset or centervalue from and to which pixel's intesity is to be moved or pull towards
+
+		factor: The constant that is used to adjust brightness
+				increase contrast, 1.05 < factor < 1.2
+				decrease constrast 0.1 < factor < 1.0
+
+	Returns:
+		None
+	"""
+
+	print("Starting contrast adjustment")
+
+	imageHeight, imageWidth = imageArray.shape
+	for i in range(0,imageHeight):
+		for j in range(0,imageWidth):
+			tempC = int(imageArray[i,j])
+			tempD = int(factor * (tempC - centerConstant) + centerConstant)
+			if(tempD < 0):
+				imageArray[i,j] = 0
+			elif(tempD > 255):
+				imageArray[i,j] = 255
+			else:
+				imageArray[i,j] = tempD
+	print("Contrast Adjustment complete")
+
+	return imageArray #return contrast adjusted imageArray
+
+
+
 
 def applyHistogramEqualization(imageArray):
 	""" This function perfrom histogram eqalization on a 2D grey scale image array
@@ -58,6 +123,8 @@ def applyHistogramEqualization(imageArray):
 	
 	print("Completed Histogram Equalization")
 	return imageArray
+
+
 
 
 
@@ -142,6 +209,53 @@ def applyGaussianBlur(imageArray):
 	return blurredArray #return blurred array
 
 
+
+
+def detectEdges(imageArray):
+	""" This function perfrom edge detection in an greyscale 2D imageArray
+
+		this function applyies vertical and horizational sobel masks to image array,
+		before useing this function smotthing masks such as gaussian blur is recomended
+
+		Args:
+			imageArray: the 2D grey scale image array
+
+		Returns:
+			edge edetected image array
+	"""
+
+	print("Started Edge detection")
+
+	# sobel vertical mask
+	#	-1, 0,	1
+	#	-2,	0,	2
+	#	-1,	0,	1
+	sobelVerticalMask = numpy.array([[-1,0,1],[-5,0,5],[-1,0,1]],float)
+
+
+	#sobel horizontal mask
+	#	-1,	-2, -1
+	#	0,	0,	0
+	#	1,	2,	1
+	sobelHorizontalMask = numpy.array([[-1,-5,-1],[0,0,0],[1,5,1]],float)
+
+
+	#apply vertical mask to 2D image array
+	verticalEdges = numpy.array(convolve(imageArray,sobelVerticalMask),float)
+
+	#apply horizontal mask to 2D image array
+	horizontalEdges = numpy.array(convolve(imageArray,sobelHorizontalMask),float)
+
+
+	#get gradient magnitude
+	gradientMadnitude = numpy.hypot(horizontalEdges,verticalEdges)
+
+	#get gradient direction
+	gradientDirection = numpy.arctan2(verticalEdges,horizontalEdges)
+
+	print("completed Edge detection")
+
+	return gradientMadnitude, gradientDirection #return imageArray and imageAray direction
 
 
 

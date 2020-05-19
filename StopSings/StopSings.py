@@ -10,7 +10,8 @@ def main():
     header, imgAr, imgH, imgW = BMP.readBitMapImage(path)
     imgAr = IMP.applyHistogramEqualization(imgAr) #improve appearence of the image
     imgAr = IMP.applyGaussianBlur(imgAr) #smooth the image with low pass filter
-    BMP.writeBitMapImage(header,imgAr,"image_1",pathToSave)
+    imgAr, imgArDr = IMP.detectEdges(imgAr)
+    BMP.writeBitMapImage(header,imgAr,"image_11",pathToSave)
     #TODO: learn about FFT and write your won FFT algorithm
 
 if __name__ == "__main__":

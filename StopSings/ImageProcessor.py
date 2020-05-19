@@ -235,6 +235,9 @@ def detectEdges(imageArray):
 		this function applyies vertical and horizational sobel masks to image array,
 		before useing this function smotthing masks such as gaussian blur is recomended
 
+		TODO: changed vertical to primary diagonal, changed horizontal to secondary diagonal, rename them,
+			  changing weight 2 to 5 gives more prominent edges
+
 		Args:
 			imageArray: the 2D grey scale image array
 
@@ -248,14 +251,18 @@ def detectEdges(imageArray):
 	#	-1, 0,	1
 	#	-2,	0,	2
 	#	-1,	0,	1
-	sobelVerticalMask = numpy.array([[-1,0,1],[-2,0,2],[-1,0,1]],float)
+	sobelVerticalMask = numpy.array([[0,1,2],
+									[-1,0,1],
+									[-2,-1,0]],float)
 
 
 	#sobel horizontal mask
 	#	-1,	-2, -1
 	#	0,	0,	0
 	#	1,	2,	1
-	sobelHorizontalMask = numpy.array([[-1,-2,-1],[0,0,0],[1,2,1]],float)
+	sobelHorizontalMask = numpy.array([[-2,-1,0],
+										[-1,0,1],
+										[0,1,2]],float)
 
 
 	#apply vertical mask to 2D image array

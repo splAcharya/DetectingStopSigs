@@ -202,7 +202,7 @@ def applyGaussianBlur(imageArray):
 	kernel = kernel / 256 #scale kernel
 
 	
-	blurredArray = convolve(imageArray,kernel) #apply blurr via convolution
+	blurredArray = convolve(imageArray.copy(),kernel.copy()) #apply blurr via convolution
 
 	print("Completed Applying Gaussian Blur")
 
@@ -241,11 +241,10 @@ def detectEdges(imageArray):
 
 
 	#apply vertical mask to 2D image array
-	verticalEdges = numpy.array(convolve(imageArray,sobelVerticalMask),float)
+	verticalEdges = numpy.array(convolve(imageArray.copy(),sobelVerticalMask.copy()),float)
 
 	#apply horizontal mask to 2D image array
-	horizontalEdges = numpy.array(convolve(imageArray,sobelHorizontalMask),float)
-
+	horizontalEdges = numpy.array(convolve(imageArray.copy(),sobelHorizontalMask.copy()),float)
 
 	#get gradient magnitude
 	gradientMadnitude = numpy.hypot(horizontalEdges,verticalEdges)
@@ -259,4 +258,196 @@ def detectEdges(imageArray):
 
 
 
+
+def applyNonMaximSupression(imageArray,imageGradient):
+	""" THis function perfrom gradient based thinning of the 2D pixel data
+
+		THe result of this operation is reflected on the 2D array.
+
+		Args:
+			imageArray: the 2D edge detected image array
+
+			imageGradient: the gradient of 2D edge detect image
+
+		Returns:
+			2D imageArray with edges supressed
+	"""
+
+
+	print("Thinning Edges via non maxium supression started")
+		
+	#convert directions from radian to degrees
+	gradientDirection = imageGradient.copy()
+	pixelData = imageArray.copy()
+
+	gradientDirection = gradientDirection * (180/numpy.pi) #convert from radian to degrees
+
+	suppressCount = 0
+	negcount = 0
+
+	imageHeight, imageWidth = pixelData.shape
+
+	for i in range(1,imageHeight-1):
+		for j in range(1,imageWidth-1):
+
+			#get the current edge's direction
+			direction = gradientDirection[i,j]
+			if(direction < 0):
+				negcount += 1
+
+			#define container for pixel at opposite edges
+			opEdge1 = 0 
+			opEdge2 = 0
+
+			#if gradient direction is between  either to left or right of the current pixel
+			if(( 0 <= direction < 22.5 ) or (157.5 <= direction <= 180)):
+				opEdge1 = pixelData[i,j+1]
+				opEdge2 = pixelData[i,j-1]
+
+			#if gradient direction is at the 45 degree angle or 225 degree angle
+			elif( 22.5 <= direction < 67.5):
+				opEdge1 = pixelData[i+1,j-1]
+				opEdge2 = pixelData[i-1,j+1]
+
+			#if gradient direction is at the 90 degree angle or 270 degree angle
+			elif( 67.5 <= direction < 122.5 ):
+				opEdge1 = pixelData[i+1,j]
+				opEdge2 = pixelData[i-1,j]
+
+			#if gradient direction is at the 135 degree angle or 315 degree angle
+			elif( 112.5 <= direction < 157.5 ):
+				opEdge1 = pixelData[i-1,j-1]
+				opEdge2 = pixelData[i+1,j+1]
+				
+			#check
+			if((pixelData[i,j] >= opEdge1) and (pixelData[i,j] >= opEdge2)):
+				pass
+			else:
+				pixelData[i,j] = 0
+				suppressCount += 1
+
+	print("Thinning Edges via non maxium supression completed. SupressCount = %d Negcount = %d"%(suppressCount,negcount))
+
+	return pixelData
+
+
+
+
+def doubleThresholdingandEdgeTracking(imageArray,lowerThreshold,upperThreshold, neighborCount):
+	"""This function perfrom double thresholding and edge tracking to remove noise and thing edges from the 2D pixel data
+
+		The result of this operation is reflected on 2D array
+
+		Args:
+			imageArray: the 2D greyscale image array
+			lowerThreshold: pixel intensity below this threshold value will be set to zero
+			upperThreshold: pixel intensoty above this threshold value will be set to 255
+			Neighborcount: the number of surrounding pixels to be check for edge tracking
+
+		Returns:
+			thresholded  adn edge tracked imageArray
+	"""
+
+	print("Started Removing unrelated Edges via Double Thresholding and tracking related edge via edge tracking")
+		
+	pixelData = imageArray.copy()
+	imageHeight, imageWidth = pixelData.shape
+
+	for i in range(neighborCount,imageHeight-neighborCount):
+		for j in range(neighborCount,imageWidth-neighborCount):
+
+			#if this pixel's intensity is above upper threshoold then its an edge
+			if(pixelData[i,j] > upperThreshold):
+				pixelData[i,j] = 255
+
+			#if the pixel's  intensity is below lower threshold the its not and edge
+			elif(pixelData[i,j] < lowerThreshold):
+				pixelData[i,j] = 0
+
+			#if the pixel's intenshity is below uperthreshold and above lower threshold, check surrounding pixels
+			else:
+					
+				#get horizontally right neigbors
+				hrNeighbors = list(pixelData[i,j+1:neighborCount+1])
+				hrCount = len([k for k in hrNeighbors if k > upperThreshold])
+
+						
+				#get horizontally left neighbors
+				hlNeighbors = list(pixelData[i,j-1:j-neighborCount-1:-1])
+				hlCount = len([k for k in hlNeighbors if k > upperThreshold])
+
+
+
+				#get vertically down neighbors
+				vdNeighbors = list(pixelData[i+1:neighborCount+1,j])
+				vdCount = len([k for k in vdNeighbors if k > upperThreshold])
+
+
+						   
+				#get vertically up neighbors
+				vuNeighbors = list(pixelData[i-1:i-neighborCount-1,j])
+				vuCount = len([k for k in vuNeighbors if k > upperThreshold])
+
+				#get primary diagonal right
+				pdrNeighbors = []
+				mthIndex = i + 1
+				nthIndex= j + 1
+				indexCount = 0
+				while(indexCount < neighborCount):
+					pdrNeighbors.append(pixelData[mthIndex,nthIndex])
+					mthIndex += 1
+					nthIndex += 1
+					indexCount +=1
+				pdrCount = len([k for k in pdrNeighbors if k > upperThreshold])
+
+
+
+				#get primary diagonal left
+				pdlNeighbors = []
+				mthIndex = i - neighborCount
+				nthIndex= j  - neighborCount
+				indexCount = 0
+				while(indexCount < neighborCount):
+					pdlNeighbors.append(pixelData[mthIndex,nthIndex])
+					mthIndex += 1
+					nthIndex += 1
+					indexCount += 1
+				pdlCount = len([k for k in pdlNeighbors if k > upperThreshold])
+
+
+				#get seconday diagonal left
+				sdlNeighbors=[]
+				mthIndex = i + 1
+				nthIndex = j - 1
+				indexCount = 0
+				while(indexCount < neighborCount):
+					sdlNeighbors.append(pixelData[mthIndex,nthIndex])
+					mthIndex += 1
+					nthIndex -= 1
+					indexCount += 1
+				sdlCount = len([k for k in sdlNeighbors if k > upperThreshold])
+
+
+				#get secondary diagonal right
+				sdrNeighbors=[]
+				mthIndex = i - 1
+				nthIndex = j + 1
+				indexCount = 0
+				while(indexCount < neighborCount):
+					sdrNeighbors.append(pixelData[mthIndex,nthIndex])
+					mthIndex -= 1
+					nthIndex += 1
+					indexCount += 1
+				sdrCount = len([k for k in sdrNeighbors if k > upperThreshold])
+
+
+				#descision to keep the pixel or not
+				if(( hlCount >= neighborCount) or (hrCount >= neighborCount) or (vuCount >= neighborCount) or (vdCount >= neighborCount) or (pdrCount >= neighborCount) or (pdlCount >= neighborCount) or (sdrCount >= neighborCount) or (sdlCount >= neighborCount)):
+					pixelData[i,j] = 255
+				else:
+					pixelData[i,j] = 0
+		
+	print("Completed Removing unrelated Edges via Double Thresholding and tracking related edge via edge tracking")
+
+	return pixelData #return imageArray 
 

@@ -2,6 +2,9 @@
 #Since: 5/16/2020
 
 import numpy
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+
 
 def adjustBrightness(imageArray, adjustmentConstant):
 	""" This function adjusts the brightness of the 2D array by a contant value
@@ -98,7 +101,8 @@ def applyHistogramEqualization(imageArray):
 			intensity = imageArray[i,j]
 			histogram[intensity] = histogram[intensity] + 1
 
-
+	#plt.hist(histogram,bins=256,color='g',edgecolor='w', alpha=1)
+	#plt.show()
 
 	#build cumulative histogram
 	for i in range(1,256):
@@ -107,6 +111,20 @@ def applyHistogramEqualization(imageArray):
 
 	#Build normalized histogram
 	histogram = histogram * (255/(imageHeight*imageWidth))
+
+	#display histogram
+
+	#bins = number of elements
+	#color = color of histogram
+	#edgecolor = 'distinguish bins
+	#fig, a = plt.subplots(1,2)
+	#alpha = transpancy of data, 0 < alpha < 1
+	#rcParams['figure.figsize'] = 10,10 #graph size
+	
+	#plt.hist(histogram,bins=256,color='g',edgecolor='w',alpha=1)
+	#plt.grid(axis='y',alpha=0.2)
+	#plt.show()
+
 
 	#apply histogram equalization
 	for i in range(0,imageHeight):
@@ -450,58 +468,3 @@ def doubleThresholdingandEdgeTracking(imageArray,lowerThreshold,upperThreshold, 
 	print("Completed Removing unrelated Edges via Double Thresholding and tracking related edge via edge tracking")
 
 	return pixelData #return imageArray 
-
-
-
-def applyLineDetector(imageArray):
-	"""This function applies line detector to 2D image array
-
-		Args:
-			imageArray: the 2D greyscale image array
-	"""
-
-	imageHeight, imageWidth  = imageArray.shape
-
-
-	#define line kernels
-	horizontalKernel = numpy.array([[-1,-1,-1],
-									[2,2,2],
-									[-1,-1,-1]],float)
-
-
-	verticalKernel = numpy.array([[-1,2,-1],
-								  [-1,2,-1],
-								  [-1,2,-1]],float)
-
-	pos45Kernel = numpy.array([[-1,-1,2],
-								[-1,2,-1],
-								[2,-1,-1]],float)
-	
-	neg45Kernel = numpy.array([[2,-1,-1],
-							   [-1,2,-1],
-							   [-1,-1,2]],float)
-
-
-	#convolved with different kernels
-	horizontalEdges = convolve(imageArray,horizontalKernel) #hotizontal edges
-	verticalEdges = convolve(imageArray,verticalKernel) #vertical edges
-	pos45Edges = convolve(imageArray,pos45Kernel) #edges along rimary diagonal
-	neg45Edges = convolve(imageArray,neg45Kernel) #edges alson seconday diagonal
-
-
-	
-	strongestEdge = numpy.zeros(imageArray.shape,float) #define container
-
-	greatest = lambda a,b: a if a > b else b #lamba expression to find greater element in two numbers
-
-	#find the strongest edge
-	for i in range(0,imageHeight):
-		for j in range(0,imageWidth):
-
-			max = greatest(horizontalEdges[i,j],verticalEdges[i,j])
-			max = greatest(max,pos45Edges[i,j])
-			max = greatest(max,neg45Edges[i,j])
-
-			strongestEdge[i,j] = max
-
-	return strongestEdge

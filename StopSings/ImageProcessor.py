@@ -230,14 +230,14 @@ def detectEdges(imageArray):
 	#	-1, 0,	1
 	#	-2,	0,	2
 	#	-1,	0,	1
-	sobelVerticalMask = numpy.array([[-1,0,1],[-5,0,5],[-1,0,1]],float)
+	sobelVerticalMask = numpy.array([[-1,0,1],[-2,0,2],[-1,0,1]],float)
 
 
 	#sobel horizontal mask
 	#	-1,	-2, -1
 	#	0,	0,	0
 	#	1,	2,	1
-	sobelHorizontalMask = numpy.array([[-1,-5,-1],[0,0,0],[1,5,1]],float)
+	sobelHorizontalMask = numpy.array([[-1,-2,-1],[0,0,0],[1,2,1]],float)
 
 
 	#apply vertical mask to 2D image array
@@ -451,3 +451,57 @@ def doubleThresholdingandEdgeTracking(imageArray,lowerThreshold,upperThreshold, 
 
 	return pixelData #return imageArray 
 
+
+
+def applyLineDetector(imageArray):
+	"""This function applies line detector to 2D image array
+
+		Args:
+			imageArray: the 2D greyscale image array
+	"""
+
+	imageHeight, imageWidth  = imageArray.shape
+
+
+	#define line kernels
+	horizontalKernel = numpy.array([[-1,-1,-1],
+									[2,2,2],
+									[-1,-1,-1]],float)
+
+
+	verticalKernel = numpy.array([[-1,2,-1],
+								  [-1,2,-1],
+								  [-1,2,-1]],float)
+
+	pos45Kernel = numpy.array([[-1,-1,2],
+								[-1,2,-1],
+								[2,-1,-1]],float)
+	
+	neg45Kernel = numpy.array([[2,-1,-1],
+							   [-1,2,-1],
+							   [-1,-1,2]],float)
+
+
+	#convolved with different kernels
+	horizontalEdges = convolve(imageArray,horizontalKernel) #hotizontal edges
+	verticalEdges = convolve(imageArray,verticalKernel) #vertical edges
+	pos45Edges = convolve(imageArray,pos45Kernel) #edges along rimary diagonal
+	neg45Edges = convolve(imageArray,neg45Kernel) #edges alson seconday diagonal
+
+
+	
+	strongestEdge = numpy.zeros(imageArray.shape,float) #define container
+
+	greatest = lambda a,b: a if a > b else b #lamba expression to find greater element in two numbers
+
+	#find the strongest edge
+	for i in range(0,imageHeight):
+		for j in range(0,imageWidth):
+
+			max = greatest(horizontalEdges[i,j],verticalEdges[i,j])
+			max = greatest(max,pos45Edges[i,j])
+			max = greatest(max,neg45Edges[i,j])
+
+			strongestEdge[i,j] = max
+
+	return strongestEdge

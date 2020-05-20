@@ -22,13 +22,16 @@ def blendTwoImages(imageArray1,imageArray2, blendFactor):
 
 	for i in range(0,imageHeight):
 		for j in range(0,imageWidth):
-			blendedPixel[i,j] = round ((blendFactor * float(imageArray1[i,j])) + (  (1-blendFactor) * float(imageArray2[i,j]) ))
-			if(blendedPixel[i,j] < 0):
-				blendedPixel = 0
-			elif(blendedPixel[i,j] > 255):
-				blendedPixel = 255
+			pixel1 = blendFactor * float(imageArray1[i,j])
+			pixel2 = (1-blendFactor) * float(imageArray2[i,j])
+			finalPixel = int(round(pixel1+pixel2))
+			
+			if(finalPixel < 0):
+				blendedPixel[i,j] = 0
+			elif(finalPixel > 255):
+				blendedPixel[i,j] = 255
 			else:
-				blendedPixel = blendedPixel
+				blendedPixel[i,j] = finalPixel
 
 	return blendedPixel
 
@@ -547,7 +550,7 @@ def houghTransfrom(imageArray, thetaStep):
 
 
 
-def detectHoughPoints(houghAccumulator):
+def detectHoughPoints(houghAccumulator,thresholdPercentage):
 	""" This function detects points from the hough accumulator array
 
 		Args:
@@ -555,4 +558,53 @@ def detectHoughPoints(houghAccumulator):
 	"""
 
 	#TODO THreshold could be 50% of the largest value in accumualtor
-	print("asdasd")
+	threshold = numpy.max(houghAccumulator[:,:,0]) * (thresholdPercentage/100)
+
+
+	accHeight, accWidth, dim = houghAccumulator.shape
+	diagonal = int(accHeight/2)
+	thetaRhoList = []
+	
+	#get rho and theta values that are above threshold
+	for i in range(0,accHeight):
+		for j in range(0,accWidth):
+			if(houghAccumulator[i,j,0] > threshold):
+				rho = houghAccumulator[i,j,1] - diagonal
+				theta = houghAccumulator[i,j,2] - 90
+				thetaRhoList.append([rho,theta])
+
+	
+	pointList =[]
+	#convert rho, and theta to points
+	for rho,theta in thetaRhoList:
+		a = numpy.cos(theta)
+		b = numpy.sin(theta)
+		x0 = a * rho
+		y0 = b * rho
+		x1 = int(numpy.round( x0 + (1000 * (-b)) ))
+		y1 = int(numpy.round( y0 + (1000 * (a)) ))
+		x2 = int(numpy.round( x0 - (1000 * (-b)) ))
+		y2 = int(numpy.round( y0 - (1000 * (a)) ))
+		pointList.append([x1,y1,x2,y2])
+
+
+	return pointList
+
+
+def createHoughLineImage(houghPoints,imageHeight,imageWidth):
+	""" This function creates image using hough points
+	
+		Args:
+			houghPoints: the x,y coordinates of hough points
+
+		Returns:
+			the 2D greyscale image array
+	"""
+
+	imageArray = numpy.zeros([imageHeight,imageWidth],int)
+
+	for x1,y1,x2,y2 in houghPoints:
+		imageArray[x1,y1] = 255
+		imageArray[x2,y2] = 255
+
+	return imageArray

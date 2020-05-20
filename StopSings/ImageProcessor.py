@@ -6,6 +6,34 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
+def blendTwoImages(imageArray1,imageArray2, blendFactor):
+	"""This function blends two images together into one image where bith imageArray have to be of the same size
+		
+		Args:
+			imageArray1: 2D grey scale image array for image1
+			imageArray2: 2D grey scale image array for image2
+			blendFactor: determine which of the two images has more influence over the final image, musbet be between 0 < blendFactor < 1
+
+		Returns:
+			2D blended image array
+	"""
+	imageHeight, imageWidth = imageArray1.shape
+	blendedPixel= numpy.zeros(imageArray1.shape,float)
+
+	for i in range(0,imageHeight):
+		for j in range(0,imageWidth):
+			blendedPixel[i,j] = round ((blendFactor * float(imageArray1[i,j])) + (  (1-blendFactor) * float(imageArray2[i,j]) ))
+			if(blendedPixel[i,j] < 0):
+				blendedPixel = 0
+			elif(blendedPixel[i,j] > 255):
+				blendedPixel = 255
+			else:
+				blendedPixel = blendedPixel
+
+	return blendedPixel
+
+
+
 def adjustBrightness(imageArray, adjustmentConstant):
 	""" This function adjusts the brightness of the 2D array by a contant value
 
@@ -526,5 +554,5 @@ def detectHoughPoints(houghAccumulator):
 			houghAccumulator: the accumulator array containing hough points
 	"""
 
-	#TODO; THreshold could be 50% of the largest value in accumualtor
+	#TODO THreshold could be 50% of the largest value in accumualtor
 	print("asdasd")

@@ -107,7 +107,7 @@ def writeBitMapImage(header,imageArray,imageName,pathToSave):
 	#write data
 	for i in range(0,imageHeight):
 		for j in range(0,imageWidth):
-			temp = int(imageArray[i,j])
+			temp = round(imageArray[i,j])
 
 			#boundary checkig
 			if(temp < 0):

@@ -13,8 +13,14 @@ def main():
     imgAr, imgArDr = IMP.detectEdges(imgAr) #apply sobel edge detection
     imgAr = IMP.applyNonMaximSupression(imgAr,imgArDr) #thin edges
     imgAr = IMP.doubleThresholdingandEdgeTracking(imgAr,70,150,5)
+    houghAcc = IMP.houghTransfrom(imgAr,thetaStep = 5)
+
+    #TODO: to see hough lines, maybe try plotting all the points from one point to another and adding them together using nump.eye
     BMP.writeBitMapImage(header,imgAr,"image_1ab",pathToSave)
     #TODO: learn about FFT and write your won FFT algorithm
     #TODO: use only one threshold(lower threshold) and track anything above the lower threshold
+    #TODO: it is not possibe to draw hough lines on original image, the only way to do it is to 
+    #       superimpose one image over the other
+
 if __name__ == "__main__":
     main()

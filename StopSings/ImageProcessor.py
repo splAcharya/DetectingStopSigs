@@ -478,7 +478,7 @@ def doubleThresholdingandEdgeTracking(imageArray,lowerThreshold,upperThreshold, 
 
 
 
-def houghTransfrom(imageArray):
+def houghTransfrom(imageArray, thetaStep):
 	"""This function perfrom hough transfrom in the given imageArray
 	
 	Args:
@@ -487,18 +487,44 @@ def houghTransfrom(imageArray):
 	Returns:
 		hough accumulator
 	""" 
+	print("Started Hough Transfrom")
 
 	imageHeight, imageWidth = imageArray.shape
 	diagonal = int(numpy.hypot(imageHeight,imageWidth))
-	houghAccumulator  = numpy.zeros([diagonal,181],float)
+	houghAccumulator  = numpy.zeros([diagonal*2,181,3],float)
 
 
 	for i in range(0,imageHeight):
 		for j in range(0, imageWidth):
-
 			if(imageArray[i,j] == 255):
-				for theta in range(-90,91):
+				for theta in range(-90,91,thetaStep):
 					rho = (i * numpy.sin(numpy.deg2rad(theta))) + (j * numpy.cos(numpy.deg2rad(theta)))
-				
+					rho += diagonal #shift negative values up
+					iRho = int(numpy.round(rho))
+					iTheta = theta + 90
+					houghAccumulator[iRho,iTheta,0] += 1
+					houghAccumulator[iRho,iTheta,1] += rho
+					houghAccumulator[iRho,iTheta,2] += theta
 
-			
+	
+
+	plt.figure("Hough Space",figsize=(100,100))
+	plt.imshow(houghAccumulator[:,:,0])
+	plt.set_cmap("gray")
+	plt.show()
+
+	print("Hough Transform complete")
+
+	return houghAccumulator #return the accumulator
+
+
+
+def detectHoughPoints(houghAccumulator):
+	""" This function detects points from the hough accumulator array
+
+		Args:
+			houghAccumulator: the accumulator array containing hough points
+	"""
+
+	#TODO; THreshold could be 50% of the largest value in accumualtor
+	print("asdasd")

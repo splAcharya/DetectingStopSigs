@@ -475,3 +475,30 @@ def doubleThresholdingandEdgeTracking(imageArray,lowerThreshold,upperThreshold, 
 	print("Completed Removing unrelated Edges via Double Thresholding and tracking related edge via edge tracking")
 
 	return pixelData #return imageArray 
+
+
+
+def houghTransfrom(imageArray):
+	"""This function perfrom hough transfrom in the given imageArray
+	
+	Args:
+		imageArray: the 2D greyscale image array
+
+	Returns:
+		hough accumulator
+	""" 
+
+	imageHeight, imageWidth = imageArray.shape
+	diagonal = int(numpy.hypot(imageHeight,imageWidth))
+	houghAccumulator  = numpy.zeros([diagonal,181],float)
+
+
+	for i in range(0,imageHeight):
+		for j in range(0, imageWidth):
+
+			if(imageArray[i,j] == 255):
+				for theta in range(-90,91):
+					rho = (i * numpy.sin(numpy.deg2rad(theta))) + (j * numpy.cos(numpy.deg2rad(theta)))
+				
+
+			

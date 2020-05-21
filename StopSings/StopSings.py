@@ -12,10 +12,19 @@ def main():
     imgAr = IMP.applyGaussianBlur(imgAr) #smooth the image with low pass filter
     imgAr, imgArDr = IMP.detectEdges(imgAr) #apply sobel edge detection
     imgAr = IMP.applyNonMaximSupression(imgAr,imgArDr) #thin edges
-    imgAr = IMP.doubleThresholdingandEdgeTracking(imgAr,70,150,5)    
-    houghAcc = IMP.houghTransfrom(imgAr,thetaStep = 5)
-    houghPoints = IMP.detectHoughPoints(houghAcc,50)
-    imgAr = IMP.createHoughLineImage(houghPoints,imgH,imgW)
+    imgAr = IMP.doubleThresholdingandEdgeTracking(imgAr,70,150,5)
+    
+    im = numpy.eye(imgAr.shape[0],imgAr.shape[1])
+    for i in range(0,imgH):
+        for j in range(0,imgW):
+            if(im[i,j] == 1):
+                im[i,j] = 255
+
+    #imgAr = IMP.blendTwoImages(imgAr,im,0.6)
+    #TODO: change blend setting to see if the second image has and edge then emphasize those edge elements and let other elemtns be same from first image
+    #houghAcc = IMP.houghTransfrom(imgAr,thetaStep = 5)
+    #houghPoints = IMP.detectHoughPoints(houghAcc,50)
+    #imgAr = IMP.createHoughLineImage(houghPoints,imgH,imgW)
     #TODO: to see hough lines, maybe try plotting all the points from one point to another and adding them together using nump.eye
     BMP.writeBitMapImage(header,imgAr,"image_1blended",pathToSave)
     #TODO: learn about FFT and write your won FFT algorithm

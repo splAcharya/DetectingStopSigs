@@ -232,7 +232,6 @@ def applyGaussianBlur(imageArray):
 	"""
 
 	print("Started Applying Gaussian Blur")
-   
 	#Define Gausian Kernel
 		
 	#              1,  4,  6,  4, 1
@@ -550,7 +549,7 @@ def houghTransfrom(imageArray, thetaStep):
 
 
 
-def detectHoughPoints(houghAccumulator,thresholdPercentage):
+def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWidht):
 	""" This function detects points from the hough accumulator array
 
 		Args:
@@ -558,9 +557,7 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage):
 	"""
 
 	#TODO THreshold could be 50% of the largest value in accumualtor
-	threshold = numpy.max(houghAccumulator[:,:,0]) * (thresholdPercentage/100)
-
-
+	threshold = int( numpy.round(numpy.max(houghAccumulator[:,:,0]) * (thresholdPercentage/100)))
 	accHeight, accWidth, dim = houghAccumulator.shape
 	diagonal = int(accHeight/2)
 	thetaRhoList = []
@@ -577,17 +574,31 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage):
 	pointList =[]
 	#convert rho, and theta to points
 	for rho,theta in thetaRhoList:
-		a = numpy.cos(theta)
-		b = numpy.sin(theta)
-		x0 = a * rho
-		y0 = b * rho
-		x1 = int(numpy.round( x0 + (1000 * (-b)) ))
-		y1 = int(numpy.round( y0 + (1000 * (a)) ))
-		x2 = int(numpy.round( x0 - (1000 * (-b)) ))
-		y2 = int(numpy.round( y0 - (1000 * (a)) ))
-		pointList.append([x1,y1,x2,y2])
+		#a = numpy.cos(theta)
+		#b = numpy.sin(theta)
+		#x0 = a * rho
+		#y0 = b * rho
+		#x1 = int(numpy.round( x0 + (1000 * (-b)) ))
+		#y1 = int(numpy.round( y0 + (1000 * (a)) ))
+		#x2 = int(numpy.round( x0 - (1000 * (-b)) ))
+		#y2 = int(numpy.round( y0 - (1000 * (a)) ))
+		x1= y1 = x2 = y2 = 0
+		thetaRad=numpy.deg2rad(thetaRad)
+		if( (theta < 45) or (theta > 135) ): #vertical lines
+			x1 = float(rho)/float(numpy.cos(thetaRad))
+			y1 = 0
 
+			x2 = rho - (float(imageHeight) * (numpy.sin(thetaRad)/numpy.cos(thetaRad)) )
+			y2 = imageHeight
+		else: #horizontal lines
+			x1 = 0
+			y1 = float(rho)/numpy.sin(thetaRad)
 
+			x2 = imageWidth
+			y2 = rho - ( float(imageWidth) * ( numpy.cos(thetaRad)/  numpy.sin(thetaRad) ) )
+
+		pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
+	
 	return pointList
 
 
@@ -606,5 +617,6 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 	for x1,y1,x2,y2 in houghPoints:
 		imageArray[x1,y1] = 255
 		imageArray[x2,y2] = 255
+		
 
 	return imageArray

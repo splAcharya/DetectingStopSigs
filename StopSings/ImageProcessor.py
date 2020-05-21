@@ -119,7 +119,7 @@ def applyHistogramEqualization(imageArray):
 			histogram euqalized 2D image array, the height and width of return array is the same as input imageArray
 	"""
 
-	print("Startting Histogram Equalization")
+	print("Starting Histogram Equalization")
 
 
 	imageHeight, imageWidth = imageArray.shape #get height and widhth of 2D image array
@@ -521,27 +521,30 @@ def houghTransfrom(imageArray, thetaStep):
 
 	imageHeight, imageWidth = imageArray.shape
 	diagonal = int(numpy.hypot(imageHeight,imageWidth))
-	houghAccumulator  = numpy.zeros([diagonal*2,181,3],float)
+	houghAccumulator  = numpy.zeros([diagonal*2,180,3],float)
 
+
+	center_i = imageWidth/2
+	center_j = imageHeight/2
 
 	for i in range(0,imageHeight):
 		for j in range(0, imageWidth):
 			if(imageArray[i,j] == 255):
-				for theta in range(-90,91,thetaStep):
-					rho = (i * numpy.sin(numpy.deg2rad(theta))) + (j * numpy.cos(numpy.deg2rad(theta)))
+				for theta in range(0,180,thetaStep):
+					rho = ( (i-center_i) * numpy.sin(numpy.deg2rad(theta))) + ((j-center_j) * numpy.cos(numpy.deg2rad(theta)))
 					rho += diagonal #shift negative values up
 					iRho = int(numpy.round(rho))
-					iTheta = theta + 90
+					iTheta = theta
 					houghAccumulator[iRho,iTheta,0] += 1
 					houghAccumulator[iRho,iTheta,1] += rho
 					houghAccumulator[iRho,iTheta,2] += theta
 
 	
 
-	plt.figure("Hough Space",figsize=(100,100))
-	plt.imshow(houghAccumulator[:,:,0])
-	plt.set_cmap("gray")
-	plt.show()
+	#plt.figure("Hough Space",figsize=(100,100))
+	#plt.imshow(houghAccumulator[:,:,0])
+	#plt.set_cmap("gray")
+	#plt.show()
 
 	print("Hough Transform complete")
 
@@ -566,8 +569,8 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 	for i in range(0,accHeight):
 		for j in range(0,accWidth):
 			if(houghAccumulator[i,j,0] > threshold):
-				rho = houghAccumulator[i,j,1] - diagonal
-				theta = houghAccumulator[i,j,2] - 90
+				rho = houghAccumulator[i,j,1]
+				theta = houghAccumulator[i,j,2]
 				thetaRhoList.append([rho,theta])
 
 	
@@ -583,19 +586,19 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 		#x2 = int(numpy.round( x0 - (1000 * (-b)) ))
 		#y2 = int(numpy.round( y0 - (1000 * (a)) ))
 		x1= y1 = x2 = y2 = 0
-		thetaRad=numpy.deg2rad(thetaRad)
-		if( (theta < 45) or (theta > 135) ): #vertical lines
-			x1 = float(rho)/float(numpy.cos(thetaRad))
-			y1 = 0
-
-			x2 = rho - (float(imageHeight) * (numpy.sin(thetaRad)/numpy.cos(thetaRad)) )
-			y2 = imageHeight
-		else: #horizontal lines
+		thetaRad=numpy.deg2rad(theta)
+		if( 45 <= theta <= 135):
+			#y = (r - x cos(t)) / sin(t)
 			x1 = 0
-			y1 = float(rho)/numpy.sin(thetaRad)
-
-			x2 = imageWidth
-			y2 = rho - ( float(imageWidth) * ( numpy.cos(thetaRad)/  numpy.sin(thetaRad) ) )
+			y1 = ( float(rho-(accHeight/2)) - ( (x1 - (imageWidth/2) ) * numpy.cos(thetaRad))) / numpy.sin(thetaRad) + (imageHeight / 2)
+			x2 = imageWidth - 0
+			y2 = ( float(rho-(accHeight/2)) - ((x2 - (imageWidth/2) ) * numpy.cos(thetaRad))) / numpy.sin(thetaRad) + (imageHeight / 2)
+		else:  
+			#x = (r - y sin(t)) / cos(t);
+			y1 = 0  
+			x1 = (float(rho-(accHeight/2)) - ((y1 - (imageHeight/2) ) * numpy.sin(thetaRad))) / numpy.cos(thetaRad) + (imageWidth / 2)
+			y2 = imageHeight - 0  
+			x2 = (float(rho-(accHeight/2)) - ((y2 - (imageHeight/2) ) * numpy.sin(thetaRad))) / numpy.cos(thetaRad) + (imageWidth / 2)  
 
 		pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
 	

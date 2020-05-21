@@ -5,8 +5,8 @@ import numpy
 
 
 def main():
-    path = "D:\Repo\Personal\DetectingStopSigs\StopSings\inputImages\image_1.bmp"
-    pathToSave = "D:\Repo\Personal\DetectingStopSigs\StopSings\outputImages\oi_"
+    path = "D:\Repo\Personal\DetectingStopSigns\StopSings\inputImages\image_1.bmp"
+    pathToSave = "D:\Repo\Personal\DetectingStopSigns\StopSings\outputImages\oi_"
     header, imgAr, imgH, imgW = BMP.readBitMapImage(path)
     imgAr = IMP.applyHistogramEqualization(imgAr) #improve appearence of the image
     imgAr = IMP.applyGaussianBlur(imgAr) #smooth the image with low pass filter
@@ -24,7 +24,7 @@ def main():
     #TODO: change blend setting to see if the second image has and edge then emphasize those edge elements and let other elemtns be same from first image
 
     houghAcc = IMP.houghTransfrom(imgAr,thetaStep = 5)
-    houghPoints = IMP.detectHoughPoints(houghAcc,50)
+    houghPoints = IMP.detectHoughPoints(houghAcc,50,imgH,imgW)
     imgAr = IMP.createHoughLineImage(houghPoints,imgH,imgW)
 
 

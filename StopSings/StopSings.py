@@ -16,8 +16,9 @@ def main():
     imgAr, imgArDr = IMP.detectEdges(imgAr) #apply sobel edge detection
     imgAr = IMP.applyNonMaximSupression(imgAr,imgArDr) #thin edges
     imgAr = IMP.doubleThresholdingandEdgeTracking(imgAr,70,150,5)
+    #Segement images, fro instance 3 by 3 window which allows more compettion and better lines, look julstroms notes
     houghAcc = IMP.houghTransfrom(imgAr,thetaStep = 1)
-    houghPoints = IMP.detectHoughPoints(houghAcc,30,imgH,imgW)
+    houghPoints = IMP.detectHoughPoints(houghAcc,50,imgH,imgW)
     lineImageAr = IMP.createHoughLineImage(houghPoints,imgH,imgW)
     imgAr  = IMP.drawHoughLineImage(imgAr,lineImageAr,0.6)
 
@@ -28,8 +29,6 @@ def main():
     BMP.writeBitMapImage(header,imgAr2,"image_1blendedO",pathToSave)
     #TODO: learn about FFT and write your won FFT algorithm
     #TODO: use only one threshold(lower threshold) and track anything above the lower threshold
-    #TODO: it is not possibe to draw hough lines on original image, the only way to do it is to 
-    #       superimpose one image over the other
 
     endTime = time.time()
     print("Elapsed Time: %0.3f seconds"%(endTime-startTime))

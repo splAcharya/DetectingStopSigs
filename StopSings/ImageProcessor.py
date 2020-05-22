@@ -520,23 +520,27 @@ def houghTransfrom(imageArray, thetaStep):
 	print("Started Hough Transfrom")
 
 	imageHeight, imageWidth = imageArray.shape
-	diagonal = int(numpy.hypot(imageHeight,imageWidth))
-	houghAccumulator  = numpy.zeros([diagonal*2,181,3],float)
+	houghHeight = (numpy.sqrt(2) * max(imageHeight,imageWidth))/2
+	accHeight = int(numpy.round(houghHeight * 2.0))
+	accWidth = 180
+	houghAccumulator  = numpy.zeros([accHeight,accWidth,3],float)
+
+	centerX = imageWidth / 2
+	centerY = imageWidth / 2
 
 
 	for i in range(0,imageHeight):
 		for j in range(0, imageWidth):
 			if(imageArray[i,j] == 255):
 				for theta in range(0,180,thetaStep):
-					rho = (i * numpy.sin(numpy.deg2rad(theta))) + (j * numpy.cos(numpy.deg2rad(theta)))
-					rho += diagonal #shift negative values up
+					thetaRad = numpy.deg2rad(theta)
+					rho = ((float(j) - centerX)*numpy.cos(thetaRad)) + ( (float(i)  - centerY) * numpy.sin(thetaRad))
+					rho += houghHeight #shift negative values up
 					iRho = int(numpy.round(rho))
 					iTheta = theta
 					houghAccumulator[iRho,iTheta,0] += 1
 					houghAccumulator[iRho,iTheta,1] = rho
 					houghAccumulator[iRho,iTheta,2] = theta
-
-	
 
 	#plt.figure("Hough Space",figsize=(100,100))
 	#plt.imshow(houghAccumulator[:,:,0])
@@ -546,6 +550,18 @@ def houghTransfrom(imageArray, thetaStep):
 	print("Hough Transform complete")
 
 	return houghAccumulator #return the accumulator
+
+
+def boundaryChecks(val,minBoundary,maxBoundary):
+
+	if(val >= maxBoundary):
+		val = maxBoundary-1
+	elif(val < minBoundary):
+		val = minBoundary
+	else:
+		val = val
+
+	return int(numpy.round(val))
 
 
 
@@ -572,21 +588,26 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 				theta = houghAccumulator[i,j,2]
 				thetaRad = numpy.deg2rad(theta)
 				
-				if((theta < 45) or (theta > 135)):
-					x1 = float(rho)/numpy.cos(thetaRad)
-					y1 = 0
-
-					x2 = float(rho) - (imageHeight * numpy.sin(thetaRad) / numpy.cos(thetaRad))
-					y2 = imageHeight
+				if(45 <= theta <= 135):
+					#y = (r - x cos(t)) / sin(t)
+					x1 = 0
+					y1 = (float(rho-(accHeight/2)) - ((x1 - (imageWidth/2) ) * numpy.cos(thetaRad))) / numpy.sin(thetaRad) + (imageHeight / 2)
+					x2 = imageWidth - 0
+					y2 = (float(rho-(accHeight/2)) - ((x2 - (imageWidth/2) ) * numpy.cos(thetaRad))) / numpy.sin(thetaRad) + (imageHeight / 2)
 				
 				else:
-					x1 = 0
-					y1 = float(rho)/numpy.sin(thetaRad)
-
-					x2 = imageWidth
-					y2 = float(rho) - (imageWidth * numpy.cos(thetaRad)/numpy.sin(thetaRad))
-
-				pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
+					#x = (r - y sin(t)) / cos(t);
+					y1 = 0
+					x1 = (float(rho-(accHeight/2)) - ((y1 - (imageHeight/2) ) * numpy.sin(thetaRad))) / numpy.cos(thetaRad) + (imageWidth / 2)
+					y2 = imageHeight - 0
+					x2 = (float(rho-(accHeight/2)) - ((y2 - (imageHeight/2) ) * numpy.sin(thetaRad))) / numpy.cos(thetaRad) + (imageWidth / 2)
+					
+				x1 = boundaryChecks(x1,0,imageWidth)
+				y1 = boundaryChecks(y1,0,imageHeight)
+				x2 = boundaryChecks(x2,0,imageWidth)
+				y2 = boundaryChecks(y2,0,imageHeight)
+				pointList.append([x1,y1,x2,y2])
+				#pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
 	
 	return pointList
 
@@ -604,37 +625,24 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 		Returns:
 			the 2D greyscale image array
 	"""
-
 	imageArray = numpy.zeros([imageHeight,imageWidth],int)
-	for x1,y1,x2,y2 in houghPoints:
-		
-		if(x1 >= imageWidth):
-			x1 = imageWidth - 1
-		
-		if(y1 >= imageHeight):
-			y1 = imageHeight - 1
 	
-		if(x2 >= imageWidth):
-			x2 = imageWidth - 1
-		
-		if(y2 >= imageHeight):
-			y2 = imageHeight - 1
+	for x1, y1, x2, y2 in houghPoints:
 
+		if(y1 == y2):
+			if(x1 < x2):
+				for j in range(x1,x2+1):
+					imageArray[y1,j] = 255
+			elif(x1 > x2):
+				for j in range(x2,x1+1):
+					imageArray[y1,j] = 255
 
 		if(x1 == x2):
 			if(y1 < y2):
 				for i in range(y1,y2+1):
 					imageArray[i,x1] = 255
-			else:
+			elif(y1 > y2):
 				for i in range(y2,y1+1):
-					imageArray[i,x1] = 255
-
-		elif(y1 == y2):
-			if(x1 < x2):
-				for j in range(x1,x2+1):
-					imageArray[y1,j] = 255
-			else:
-				for j in range(x2,x1+1):
 					imageArray[y1,j] = 255
 
 	return imageArray

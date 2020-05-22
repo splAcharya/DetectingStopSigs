@@ -26,8 +26,8 @@ def main():
 
     houghAcc = IMP.houghTransfrom(imgAr,thetaStep = 5)
     houghPoints = IMP.detectHoughPoints(houghAcc,50,imgH,imgW)
-    imgAr = IMP.createHoughLineImage(houghPoints,imgH,imgW)
-    #imgAr  = IMP.blendTwoImages(imgAr,imgAr2,0.7)
+    imgAr2 = IMP.createHoughLineImage(houghPoints,imgH,imgW)
+    imgAr  = IMP.blendTwoImages(imgAr,imgAr2,0.7)
 
     #TODO: to see hough lines, maybe try plotting all the points from one point to another and adding them together using nump.eye
     BMP.writeBitMapImage(header,imgAr,"image_1blended",pathToSave)

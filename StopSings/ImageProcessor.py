@@ -625,8 +625,11 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 		Returns:
 			the 2D greyscale image array
 	"""
+	print("Started Hough Line Image")
+
 	imageArray = numpy.zeros([imageHeight,imageWidth],int)
 	
+	missedPoints = 0
 	for x1, y1, x2, y2 in houghPoints:
 
 		if(y1 == y2):
@@ -636,13 +639,67 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 			elif(x1 > x2):
 				for j in range(x2,x1+1):
 					imageArray[y1,j] = 255
-
-		if(x1 == x2):
+		elif(x1 == x2):
 			if(y1 < y2):
 				for i in range(y1,y2+1):
 					imageArray[i,x1] = 255
 			elif(y1 > y2):
 				for i in range(y2,y1+1):
 					imageArray[y1,j] = 255
+		elif((y1 < y2) and (x1 < x2) ):
+			indexI = y1
+			indexJ = x1
+			while((indexI <= y2) and (indexJ <= x2)):
+				imageArray[indexI,indexJ] = 255
+				indexI += 1
+				indexJ += 1
+		elif((y1 > y2) and (x1 < x2) ):
+			indexI = y1
+			indexJ = x1
+			while((indexI >= y2) and (indexJ <= x2)):
+				imageArray[indexI,indexJ] = 255
+				indexI -= 1
+				indexJ += 1
+		else:
+			missedPoints += 1
+
+	
+	print("Completed Hough Line Image. Missed lines: %d"%missedPoints)
+
 
 	return imageArray
+
+
+def drawHoughLineImage(imageArray,lineImage,blendFactor):
+	"""This function blends two images together into one image where bith imageArray have to be of the same size
+		
+		Args:
+			imageArray1: 2D grey scale image array for image1
+			imageArray2: 2D grey scale image array for image2
+			blendFactor: determine which of the two images has more influence over the final image, musbet be between 0 < blendFactor < 1
+
+		Returns:
+			2D blended image array
+	"""
+	imageHeight, imageWidth = imageArray.shape
+	blendedPixel= numpy.zeros(imageArray.shape,float)
+
+	for i in range(0,imageHeight):
+		for j in range(0,imageWidth):
+
+			if(lineImage[i,j]==255):
+
+				pixel1 = blendFactor * float(imageArray[i,j])
+				pixel2 = (1-blendFactor) * float(lineImage[i,j])
+				finalPixel = int(round(pixel1+pixel2))
+				
+				if(finalPixel < 0):
+					blendedPixel[i,j] = 0
+				elif(finalPixel > 255):
+					blendedPixel[i,j] = 255
+				else:
+					blendedPixel[i,j] = finalPixel
+			else:
+				blendedPixel[i,j]=imageArray[i,j]
+
+	return blendedPixel

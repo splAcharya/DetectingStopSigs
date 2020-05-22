@@ -5,9 +5,11 @@ No computer vision or image processing libraries used. (Exception: Used nummpy f
 ORIGINAL IMAGE:
 <br></br>
 ![alt text](https://github.com/splAcharya/DetectingStopSigns/blob/master/StopSings/inputImages/image_1.bmp)
+<br></br>
+
+<hr>
 
 <br></br>
-<hr>
-<br></br>
 CURRENT OUTPUT IMAGE: 
+<br></br>
 ![alt text](https://github.com/splAcharya/DetectingStopSigns/blob/master/StopSings/outputImages/oi_image_1blended.bmp)

@@ -521,23 +521,20 @@ def houghTransfrom(imageArray, thetaStep):
 
 	imageHeight, imageWidth = imageArray.shape
 	diagonal = int(numpy.hypot(imageHeight,imageWidth))
-	houghAccumulator  = numpy.zeros([diagonal*2,180,3],float)
+	houghAccumulator  = numpy.zeros([diagonal*2,181,3],float)
 
-
-	center_i = imageWidth/2
-	center_j = imageHeight/2
 
 	for i in range(0,imageHeight):
 		for j in range(0, imageWidth):
 			if(imageArray[i,j] == 255):
 				for theta in range(0,180,thetaStep):
-					rho = ( (i-center_i) * numpy.sin(numpy.deg2rad(theta))) + ((j-center_j) * numpy.cos(numpy.deg2rad(theta)))
+					rho = (i * numpy.sin(numpy.deg2rad(theta))) + (j * numpy.cos(numpy.deg2rad(theta)))
 					rho += diagonal #shift negative values up
 					iRho = int(numpy.round(rho))
 					iTheta = theta
 					houghAccumulator[iRho,iTheta,0] += 1
-					houghAccumulator[iRho,iTheta,1] += rho
-					houghAccumulator[iRho,iTheta,2] += theta
+					houghAccumulator[iRho,iTheta,1] = rho
+					houghAccumulator[iRho,iTheta,2] = theta
 
 	
 
@@ -562,47 +559,40 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 	#TODO THreshold could be 50% of the largest value in accumualtor
 	threshold = int( numpy.round(numpy.max(houghAccumulator[:,:,0]) * (thresholdPercentage/100)))
 	accHeight, accWidth, dim = houghAccumulator.shape
-	diagonal = int(accHeight/2)
-	thetaRhoList = []
+	diagonal = int(numpy.round(numpy.hypot(imageHeight,imageWidth)))
 	
+	pointList =[]
 	#get rho and theta values that are above threshold
 	for i in range(0,accHeight):
 		for j in range(0,accWidth):
+			
+			x1 = y1 = x2 = y2 = 0
 			if(houghAccumulator[i,j,0] > threshold):
 				rho = houghAccumulator[i,j,1]
 				theta = houghAccumulator[i,j,2]
-				thetaRhoList.append([rho,theta])
+				thetaRad = numpy.deg2rad(theta)
+				
+				if((theta < 45) or (theta > 135)):
+					x1 = float(rho)/numpy.cos(thetaRad)
+					y1 = 0
 
-	
-	pointList =[]
-	#convert rho, and theta to points
-	for rho,theta in thetaRhoList:
-		#a = numpy.cos(theta)
-		#b = numpy.sin(theta)
-		#x0 = a * rho
-		#y0 = b * rho
-		#x1 = int(numpy.round( x0 + (1000 * (-b)) ))
-		#y1 = int(numpy.round( y0 + (1000 * (a)) ))
-		#x2 = int(numpy.round( x0 - (1000 * (-b)) ))
-		#y2 = int(numpy.round( y0 - (1000 * (a)) ))
-		x1= y1 = x2 = y2 = 0
-		thetaRad=numpy.deg2rad(theta)
-		if( 45 <= theta <= 135):
-			#y = (r - x cos(t)) / sin(t)
-			x1 = 0
-			y1 = ( float(rho-(accHeight/2)) - ( (x1 - (imageWidth/2) ) * numpy.cos(thetaRad))) / numpy.sin(thetaRad) + (imageHeight / 2)
-			x2 = imageWidth - 0
-			y2 = ( float(rho-(accHeight/2)) - ((x2 - (imageWidth/2) ) * numpy.cos(thetaRad))) / numpy.sin(thetaRad) + (imageHeight / 2)
-		else:  
-			#x = (r - y sin(t)) / cos(t);
-			y1 = 0  
-			x1 = (float(rho-(accHeight/2)) - ((y1 - (imageHeight/2) ) * numpy.sin(thetaRad))) / numpy.cos(thetaRad) + (imageWidth / 2)
-			y2 = imageHeight - 0  
-			x2 = (float(rho-(accHeight/2)) - ((y2 - (imageHeight/2) ) * numpy.sin(thetaRad))) / numpy.cos(thetaRad) + (imageWidth / 2)  
+					x2 = float(rho) - (imageHeight * numpy.sin(thetaRad) / numpy.cos(thetaRad))
+					y2 = imageHeight
+				
+				else:
+					x1 = 0
+					y1 = float(rho)/numpy.sin(thetaRad)
 
-		pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
+					x2 = imageWidth
+					y2 = float(rho) - (imageWidth * numpy.cos(thetaRad)/numpy.sin(thetaRad))
+
+				pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
 	
 	return pointList
+
+	
+	
+	
 
 
 def createHoughLineImage(houghPoints,imageHeight,imageWidth):
@@ -616,10 +606,35 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 	"""
 
 	imageArray = numpy.zeros([imageHeight,imageWidth],int)
-
 	for x1,y1,x2,y2 in houghPoints:
-		imageArray[x1,y1] = 255
-		imageArray[x2,y2] = 255
 		
+		if(x1 >= imageWidth):
+			x1 = imageWidth - 1
+		
+		if(y1 >= imageHeight):
+			y1 = imageHeight - 1
+	
+		if(x2 >= imageWidth):
+			x2 = imageWidth - 1
+		
+		if(y2 >= imageHeight):
+			y2 = imageHeight - 1
+
+
+		if(x1 == x2):
+			if(y1 < y2):
+				for i in range(y1,y2+1):
+					imageArray[i,x1] = 255
+			else:
+				for i in range(y2,y1+1):
+					imageArray[i,x1] = 255
+
+		elif(y1 == y2):
+			if(x1 < x2):
+				for j in range(x1,x2+1):
+					imageArray[y1,j] = 255
+			else:
+				for j in range(x2,x1+1):
+					imageArray[y1,j] = 255
 
 	return imageArray

@@ -552,7 +552,7 @@ def houghTransfrom(imageArray, thetaStep):
 
 
 
-def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWidht):
+def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWidth):
 	""" This function detects points from the hough accumulator array
 
 		Args:

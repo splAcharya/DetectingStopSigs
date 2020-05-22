@@ -1,10 +1,11 @@
 import BitMapProcessor as BMP
 import ImageProcessor as IMP 
 import numpy
-
-
-
+import time
+import os
 def main():
+
+    startTime = time.time()
     path = "D:\Repo\Personal\DetectingStopSigns\StopSings\inputImages\image_1.bmp"
     pathToSave = "D:\Repo\Personal\DetectingStopSigns\StopSings\outputImages\oi_"
     header, imgAr, imgH, imgW = BMP.readBitMapImage(path)
@@ -34,6 +35,9 @@ def main():
     #TODO: use only one threshold(lower threshold) and track anything above the lower threshold
     #TODO: it is not possibe to draw hough lines on original image, the only way to do it is to 
     #       superimpose one image over the other
+
+    endTime = time.time()
+    print("Elapsed Time: %0.3f seconds"%(endTime-startTime))
 
 if __name__ == "__main__":
     main()

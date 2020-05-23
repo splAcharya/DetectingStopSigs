@@ -281,18 +281,18 @@ def detectEdges(imageArray):
 	#	-1, 0,	1
 	#	-2,	0,	2
 	#	-1,	0,	1
-	sobelVerticalMask = numpy.array([[0,1,2],
+	sobelVerticalMask = numpy.array([[0,1,5],
 									[-1,0,1],
-									[-2,-1,0]],float)
+									[-5,-1,0]],float)
 
 
 	#sobel horizontal mask
 	#	-1,	-2, -1
 	#	0,	0,	0
 	#	1,	2,	1
-	sobelHorizontalMask = numpy.array([[-2,-1,0],
+	sobelHorizontalMask = numpy.array([[-5,-1,0],
 										[-1,0,1],
-										[0,1,2]],float)
+										[0,1,5]],float)
 
 
 	#apply vertical mask to 2D image array
@@ -604,8 +604,10 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 					
 				x1 = boundaryChecks(x1,0,imageWidth)
 				y1 = boundaryChecks(y1,0,imageHeight)
+
 				x2 = boundaryChecks(x2,0,imageWidth)
 				y2 = boundaryChecks(y2,0,imageHeight)
+
 				pointList.append([x1,y1,x2,y2])
 				#pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
 	
@@ -646,6 +648,8 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 			elif(y1 > y2):
 				for i in range(y2,y1+1):
 					imageArray[y1,j] = 255
+
+
 		elif((y1 < y2) and (x1 < x2) ):
 			indexI = y1
 			indexJ = x1
@@ -653,6 +657,7 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 				imageArray[indexI,indexJ] = 255
 				indexI += 1
 				indexJ += 1
+
 		elif((y1 > y2) and (x1 < x2) ):
 			indexI = y1
 			indexJ = x1

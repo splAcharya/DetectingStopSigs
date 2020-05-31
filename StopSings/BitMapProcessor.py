@@ -19,7 +19,7 @@ def readBitMapImage(ImagePath):
 
 	"""
 
-	print("Image Scanning Started")
+	print("Started Image Scanning")
 	fileName = open(ImagePath,"rb") #open file to read bytes
 	#BITMAP FILE HEADER
 	fileType = int.from_bytes(fileName.read(2),"little") # 2 characte string value in ASCII. It must be 'BM' or '0x42 0x4D'     
@@ -80,7 +80,7 @@ def readBitMapImage(ImagePath):
 
 	fileName.close() #close file 
 	pixelData = numpy.array(pixelData) #convert to numpy array,
-	print("Image Scanning Completed")
+	print("Completed Image Scanning")
 	return completeHeader, pixelData, imageHeight, imageWidth
 
 
@@ -97,7 +97,7 @@ def writeBitMapImage(header,imageArray,imageName,pathToSave):
 	"""
 
 	
-	print("Image Writting Started")
+	print("Started Image Writting")
 
 	fileToSave = open((pathToSave + imageName + ".bmp"),"wb+") #create a file towrite
 	fileToSave.write(header) #write header
@@ -122,4 +122,4 @@ def writeBitMapImage(header,imageArray,imageName,pathToSave):
 			fileToSave.write(temp) #write the piel intensity for G
 			fileToSave.write(temp) #write the piel intensity for B
 	fileToSave.close() #save and close file
-	print("Image Writting Complete")
+	print("Complted Image Writting")

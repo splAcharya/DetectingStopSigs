@@ -17,6 +17,9 @@ def blendTwoImages(imageArray1,imageArray2, blendFactor):
 		Returns:
 			2D blended image array
 	"""
+
+	print("Started Blending Two Images")
+
 	imageHeight, imageWidth = imageArray1.shape
 	blendedPixel= numpy.zeros(imageArray1.shape,float)
 
@@ -33,7 +36,10 @@ def blendTwoImages(imageArray1,imageArray2, blendFactor):
 			else:
 				blendedPixel[i,j] = finalPixel
 
+	print("Completed Blending Two Images")
 	return blendedPixel
+
+
 
 
 
@@ -329,7 +335,7 @@ def applyNonMaximSupression(imageArray,imageGradient):
 	"""
 
 
-	print("Thinning Edges via non maxium supression started")
+	print("Started Thinning Edges via non maxium supression.")
 		
 	#convert directions from radian to degrees
 	gradientDirection = imageGradient.copy()
@@ -381,7 +387,7 @@ def applyNonMaximSupression(imageArray,imageGradient):
 				pixelData[i,j] = 0
 				suppressCount += 1
 
-	print("Thinning Edges via non maxium supression completed. SupressCount = %d Negcount = %d"%(suppressCount,negcount))
+	print("Completed Thinning Edges via non maxium supression. SupressCount = %d Negcount = %d"%(suppressCount,negcount))
 
 	return pixelData
 
@@ -508,6 +514,7 @@ def doubleThresholdingandEdgeTracking(imageArray,lowerThreshold,upperThreshold, 
 
 
 
+
 def houghTransfrom(imageArray, thetaStep):
 	"""This function perfrom hough transfrom in the given imageArray
 	
@@ -558,10 +565,13 @@ def boundaryChecks(val,minBoundary,maxBoundary):
 		val = maxBoundary-1
 	elif(val < minBoundary):
 		val = minBoundary
+	elif( ( maxBoundary - 0.5) < val < maxBoundary):
+		val = maxBoundary -1
 	else:
-		val = val
+		val = numpy.round(val)
 
-	return int(numpy.round(val))
+	return int(val)
+
 
 
 
@@ -570,7 +580,12 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 
 		Args:
 			houghAccumulator: the accumulator array containing hough points
+
+		Returns:
+			line coordinates list([x1,y1,x2,y2])
 	"""
+
+	print("Started detecting hough points")
 
 	#TODO THreshold could be 50% of the largest value in accumualtor
 	threshold = int( numpy.round(numpy.max(houghAccumulator[:,:,0]) * (thresholdPercentage/100)))
@@ -601,6 +616,7 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 					x1 = (float(rho-(accHeight/2)) - ((y1 - (imageHeight/2) ) * numpy.sin(thetaRad))) / numpy.cos(thetaRad) + (imageWidth / 2)
 					y2 = imageHeight - 0
 					x2 = (float(rho-(accHeight/2)) - ((y2 - (imageHeight/2) ) * numpy.sin(thetaRad))) / numpy.cos(thetaRad) + (imageWidth / 2)
+				
 					
 				x1 = boundaryChecks(x1,0,imageWidth)
 				y1 = boundaryChecks(y1,0,imageHeight)
@@ -610,7 +626,8 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 
 				pointList.append([x1,y1,x2,y2])
 				#pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
-	
+
+	print("Completed detecting hough points")
 	return pointList
 
 	
@@ -632,16 +649,22 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 	imageArray = numpy.zeros([imageHeight,imageWidth],int)
 	
 	missedPoints = 0
-	for x1, y1, x2, y2 in houghPoints:
+	for x1,y1,x2,y2 in houghPoints:
+		#x1=points[0]
+		#y1=points[1]
+		#x2=points[2]
+		#y2=points[3]
+		#print(x1,y1,x2,y2)
 
-		if(y1 == y2):
+		if(y1 == y2): #verical lines
 			if(x1 < x2):
 				for j in range(x1,x2+1):
 					imageArray[y1,j] = 255
 			elif(x1 > x2):
 				for j in range(x2,x1+1):
 					imageArray[y1,j] = 255
-		elif(x1 == x2):
+
+		elif(x1 == x2): #horizontal lines
 			if(y1 < y2):
 				for i in range(y1,y2+1):
 					imageArray[i,x1] = 255
@@ -650,29 +673,51 @@ def createHoughLineImage(houghPoints,imageHeight,imageWidth):
 					imageArray[y1,j] = 255
 
 
-		elif((y1 < y2) and (x1 < x2) ):
-			indexI = y1
-			indexJ = x1
-			while((indexI <= y2) and (indexJ <= x2)):
-				imageArray[indexI,indexJ] = 255
-				indexI += 1
-				indexJ += 1
+		elif((y1 < y2) and (x1 < x2) ): #primary diagonal
+			index_Y = y1
+			index_X = x1
 
-		elif((y1 > y2) and (x1 < x2) ):
-			indexI = y1
-			indexJ = x1
-			while((indexI >= y2) and (indexJ <= x2)):
-				imageArray[indexI,indexJ] = 255
-				indexI -= 1
-				indexJ += 1
+			while((index_Y <= y2) and (index_X <= x2)):
+				imageArray[index_Y,index_X] = 255
+				index_Y += 1
+				index_X += 1
+			
+			while((index_Y <= y2) and (index_X > x2)):
+				imageArray[index_Y,index_X-1] = 255
+				index_Y += 1
+
+			while((index_Y > y2) and (index_X <= x2)):
+				imageArray[index_Y-1,index_X] = 255
+				index_X += 1
+
+	
+				
+		elif((y1 > y2) and (x1 < x2) ): #secondary diagonal
+			index_Y = y1
+			index_X = x1
+
+			while((index_Y >= y2) and (index_X <= x2)):
+				imageArray[index_Y,index_X] = 255
+				index_Y -= 1
+				index_X += 1
+			
+			while((index_Y >= y2) and (index_X > x2)):
+				imageArray[index_Y,index_X-1] = 255
+				index_Y -= 1
+
+			while((index_Y < y2) and (index_X <= x2)):
+				imageArray[index_Y+1,index_X] = 255
+				index_X += 1
+
 		else:
 			missedPoints += 1
 
 	
 	print("Completed Hough Line Image. Missed lines: %d"%missedPoints)
-
-
 	return imageArray
+
+
+
 
 
 def drawHoughLineImage(imageArray,lineImage,blendFactor):
@@ -686,6 +731,9 @@ def drawHoughLineImage(imageArray,lineImage,blendFactor):
 		Returns:
 			2D blended image array
 	"""
+
+	print("Started drawing hough line image")
+
 	imageHeight, imageWidth = imageArray.shape
 	blendedPixel= numpy.zeros(imageArray.shape,float)
 
@@ -707,4 +755,7 @@ def drawHoughLineImage(imageArray,lineImage,blendFactor):
 			else:
 				blendedPixel[i,j]=imageArray[i,j]
 
+	print("Completed drawing hough line image")
 	return blendedPixel
+
+

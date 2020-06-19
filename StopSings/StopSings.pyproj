@@ -38,8 +38,8 @@
     <Content Include="inputImages\image_1.bmp" />
     <Content Include="inputImages\image_10.bmp" />
     <Content Include="inputImages\image_11.bmp" />
-    <Content Include="inputImages\image_12.bmp" />
     <Content Include="inputImages\image_13.bmp" />
+    <Content Include="inputImages\image_14.bmp" />
     <Content Include="inputImages\image_2.bmp" />
     <Content Include="inputImages\image_3.bmp" />
     <Content Include="inputImages\image_4.bmp" />

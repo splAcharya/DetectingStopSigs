@@ -302,10 +302,10 @@ def detectEdges(imageArray):
 
 
 	#apply vertical mask to 2D image array
-	verticalEdges = numpy.array(convolve(imageArray.copy(),sobelVerticalMask.copy()),float)
+	verticalEdges = numpy.array(convolve(imageArray,sobelVerticalMask),float)
 
 	#apply horizontal mask to 2D image array
-	horizontalEdges = numpy.array(convolve(imageArray.copy(),sobelHorizontalMask.copy()),float)
+	horizontalEdges = numpy.array(convolve(imageArray,sobelHorizontalMask),float)
 
 	#get gradient magnitude
 	gradientMadnitude = numpy.hypot(horizontalEdges,verticalEdges)
@@ -520,6 +520,7 @@ def houghTransfrom(imageArray, thetaStep):
 	
 	Args:
 		imageArray: the 2D greyscale image array
+		thetaStep: the increment invervals between [0,180]
 
 	Returns:
 		hough accumulator
@@ -543,6 +544,8 @@ def houghTransfrom(imageArray, thetaStep):
 					thetaRad = numpy.deg2rad(theta)
 					rho = ((float(j) - centerX)*numpy.cos(thetaRad)) + ( (float(i)  - centerY) * numpy.sin(thetaRad))
 					rho += houghHeight #shift negative values up
+					if( rho > (accHeight - 0.5 )):
+						rho = accHeight - 1
 					iRho = int(numpy.round(rho))
 					iTheta = theta
 					houghAccumulator[iRho,iTheta,0] += 1
@@ -559,14 +562,60 @@ def houghTransfrom(imageArray, thetaStep):
 	return houghAccumulator #return the accumulator
 
 
+
+def houghTransfromWithImageGradient(imageArray, imageGradient):
+	"""This function perfrom hough transfrom in the given imageArray
+	
+	Args:
+		imageArray: the 2D greyscale image array
+		imageGradient: the 2D image gradient array generated from edge detection
+
+	Returns:
+		hough accumulator
+	""" 
+	print("Started Hough Transfrom")
+
+	imageHeight, imageWidth = imageArray.shape
+	houghHeight = (numpy.sqrt(2) * max(imageHeight,imageWidth))/2
+	accHeight = int(numpy.round(houghHeight * 2.0))
+	accWidth = 180
+	houghAccumulator  = numpy.zeros([accHeight,accWidth,3],float)
+
+	centerX = imageWidth / 2
+	centerY = imageWidth / 2
+
+
+	for i in range(0,imageHeight):
+		for j in range(0, imageWidth):
+			if(imageArray[i,j] == 255):
+				theta = imageGradient[i,j]
+				thetaRad = numpy.deg2rad(theta)
+				rho = ((float(j) - centerX)*numpy.cos(thetaRad)) + ( (float(i)  - centerY) * numpy.sin(thetaRad))
+				rho += houghHeight #shift negative values up
+				iRho = int(numpy.round(rho))
+				iTheta = int(numpy.round(theta))
+				houghAccumulator[iRho,iTheta,0] += 1
+				houghAccumulator[iRho,iTheta,1] = rho
+				houghAccumulator[iRho,iTheta,2] = theta
+
+	#plt.figure("Hough Space",figsize=(100,100))
+	#plt.imshow(houghAccumulator[:,:,0])
+	#plt.set_cmap("gray")
+	#plt.show()
+
+	print("Hough Transform complete")
+
+	return houghAccumulator #return the accumulator
+
+
+
+
 def boundaryChecks(val,minBoundary,maxBoundary):
 
-	if(val >= maxBoundary):
+	if(val > (maxBoundary - 0.5)):
 		val = maxBoundary-1
 	elif(val < minBoundary):
 		val = minBoundary
-	elif( ( maxBoundary - 0.5) < val < maxBoundary):
-		val = maxBoundary -1
 	else:
 		val = numpy.round(val)
 
@@ -627,7 +676,7 @@ def detectHoughPoints(houghAccumulator,thresholdPercentage, imageHeight, imageWi
 				pointList.append([x1,y1,x2,y2])
 				#pointList.append([int(numpy.round(x1)),int(numpy.round(y1)),int(numpy.round(x2)),int(numpy.round(y2))])
 
-	print("Completed detecting hough points")
+	print("Completed detecting hough points. Total Points %d"%len(pointList))
 	return pointList
 
 	

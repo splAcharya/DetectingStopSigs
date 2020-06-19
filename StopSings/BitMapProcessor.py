@@ -121,5 +121,6 @@ def writeBitMapImage(header,imageArray,imageName,pathToSave):
 			fileToSave.write(temp) #write the piel intensity for R
 			fileToSave.write(temp) #write the piel intensity for G
 			fileToSave.write(temp) #write the piel intensity for B
+
 	fileToSave.close() #save and close file
 	print("Complted Image Writting")
